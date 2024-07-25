@@ -145,6 +145,7 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
             char *path_has_pattern = strstr(path, ignore_item);
             char *pattern_has_wc   = strstr(ignore_item, "*");
             char *pattern_has_dwc  = strstr(ignore_item, "**");
+            // char *pattern_has_neg  = strchr(ignore_item, '!');
 
             // Double wildcard was found in the entry, example: path:"repo/logs/file.txt", ignore:"**/logs"
             if (EXISTS(pattern_has_dwc))
