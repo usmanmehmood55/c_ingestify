@@ -1,10 +1,11 @@
 /**
  * @file      ignore.c
- * @author    Your Name (your-email@example.com)
- * @brief     your file's description
+ * @author    Usman Mehmood (usmanmehmood55@gmail.com)
+ * @brief     This is a git-like ignore implementation. I want to make it
+ *            as close to gitignore as possible. 
  * @version   0.1
  * @date      2024-07-24
- * @copyright 2024, your company / association / school
+ * @copyright Usman Mehmood 2024
  */
 
 #include "ignore.h"
@@ -83,6 +84,32 @@ ignore_list_t *ignore_read_list(const char *ignore_file)
     return ignore_list;
 }
 
+// A slash needs to be added to ignore item so that it appears as a subfolder, and not
+// a substring of a larger filename.
+// "test" -> "test/some_file.c" -> true
+// "test" -> "test_some"        -> false
+// so "test" has to become "test/"
+int match_as_directory(const char *ignore_item, const char *path)
+{
+    int exact_match = -1;
+
+    int len_ignore_item = strnlen(ignore_item, PATH_MAX);
+    char *ignore_item_slash = malloc(len_ignore_item + 2); // < ------- ALLOC HERE -------------------
+    {                                                                                               //
+        snprintf(ignore_item_slash, len_ignore_item + 2, "%s/", ignore_item);                       //
+        //                                       "test/some_file.c"    "test/"                      //
+        char *possible_ignore_subfolder = strstr(path,                 ignore_item_slash);          //
+        if (EXISTS(possible_ignore_subfolder))                                                      //
+        {                                                                                           //
+            int len_possible_ignore_subfolder = strlen(path);                                       //
+            exact_match = strncmp(possible_ignore_subfolder, path, len_possible_ignore_subfolder);  //
+        }                                                                                           //
+    }                                                                                               //
+    free(ignore_item_slash); // <-------------------------------------- FREE HERE --------------------
+
+    return exact_match;
+}
+
 /**
  * @brief Checks if a file or directory should be ignored based on the ignore list.
  * 
@@ -96,17 +123,17 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
 {
     if (EXISTS(ignore_list))
     {
-        int exact_match = -1;
+        int exact_match;
 
         for (size_t i = 0; i < ignore_list->count; i++)
         {
-            char *ignore_item     = sanitize_path(ignore_list->entries[i]);
-            char *substring_match = strstr(path, ignore_item);
-            char *wildcard        = strstr(ignore_item, "*");
-            char *double_wildcard = strstr(ignore_item, "**");
+            char *ignore_item           = sanitize_path(ignore_list->entries[i]);
+            char *substring_match       = strstr(path, ignore_item);
+            char *wildcard_match        = strstr(ignore_item, "*");
+            char *double_wildcard_match = strstr(ignore_item, "**");
 
             // Wildcard was found in the entry
-            if (EXISTS(wildcard))
+            if (EXISTS(wildcard_match))
             {
                 exact_match = strncmp(get_filename_ext(path), get_filename_ext(ignore_item), MAX_PATH);
                 if (exact_match == 0)
@@ -114,55 +141,28 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
             }
 
             // Double wildcard was found in the entry
-            if (EXISTS(double_wildcard))
+            if (EXISTS(double_wildcard_match))
             {
-                char *after_wildcard_and_slash = &double_wildcard[3];
-                char *double_wildcard_name = strstr(path, after_wildcard_and_slash);
-                if (EXISTS(double_wildcard_name))
+                char *after_wildcard_and_slash = &double_wildcard_match[3]; // "**/some_path" -> "some_path"
+                char *double_wildcard_path_match = strstr(path, after_wildcard_and_slash);
+                if (EXISTS(double_wildcard_path_match))
                 {
-                    //                                       "test/some_file.c"    "test"
-                    char *possible_ignore_subfolder = strstr(double_wildcard_name, after_wildcard_and_slash);
-                    if (EXISTS(possible_ignore_subfolder))
-                    {
-                        int len_possible_ignore_subfolder = strnlen(after_wildcard_and_slash, MAX_PATH);
-                        exact_match = strncmp(possible_ignore_subfolder, after_wildcard_and_slash, len_possible_ignore_subfolder);
-                        if (exact_match == 0)
-                            return true;
-                    }
+                    exact_match = match_as_directory(after_wildcard_and_slash, double_wildcard_path_match);
+                    if (exact_match == 0)
+                        return true;
                 }
-
-                exact_match = strcmp(get_filename_ext(double_wildcard_name), get_filename_ext(ignore_item));
-                if (exact_match == 0)
-                    return true;
             }
 
             // Part of the path matches with the ignore entry
             if (EXISTS(substring_match))
             {
-                // A slash needs to be added to ignore item so that it appears as a subfolder, and not
-                // a substring of a larger filename.
-                // "test" -> "test/some_file.c" -> true
-                // "test" -> "test_some"        -> false
-                // so "test" has to become "test/"
-
-                int len_ignore_item = strnlen(ignore_item, PATH_MAX);
-                char *ignore_item_slash = malloc(len_ignore_item + 2); // < ------- ALLOC HERE -------------------
-                {                                                                                               //
-                    snprintf(ignore_item_slash, len_ignore_item + 2, "%s/", ignore_item);                       //
-                    //                                       "test/some_file.c"    "test/"                      //
-                    char *possible_ignore_subfolder = strstr(path, ignore_item_slash);                          //
-                    if (EXISTS(possible_ignore_subfolder))                                                      //
-                    {                                                                                           //
-                        int len_possible_ignore_subfolder = strlen(path);                                       //
-                        exact_match = strncmp(possible_ignore_subfolder, path, len_possible_ignore_subfolder);  //
-                    }                                                                                           //
-                }                                                                                               //
-                free(ignore_item_slash); // <-------------------------------------- FREE HERE --------------------
-
+                // A directory in the path has matched
+                exact_match = match_as_directory(ignore_item, path);
                 if (exact_match == 0)
                     return true;
 
-                exact_match = strcmp(ignore_item, path);
+                // The full path has matched
+                exact_match = strncmp(ignore_item, path, PATH_MAX);
                 if (exact_match == 0)
                     return true;
             }

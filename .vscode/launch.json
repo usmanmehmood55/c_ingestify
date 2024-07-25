@@ -1,14 +1,41 @@
 {
     "configurations": [
     {
-        "name"           : "c-toolkit launch",
+        "name"           : "c-toolkit test",
         "type"           : "cppdbg",
         "request"        : "launch",
         "program"        : "${workspaceRoot}/build/${workspaceFolderBasename}.exe",
         "args"           : [ ".", "output.txt", "ingestify_ignore.txt" ],
         "stopAtEntry"    : false,
         "cwd"            : "${workspaceRoot}",
-        "preLaunchTask"  : "clean_build",
+        "preLaunchTask"  : "clean_build_test",
+        "environment"    : [],
+        "externalConsole": false,
+        "MIMode"         : "gdb",
+        "miDebuggerPath" : "gdb",
+        "setupCommands"  : 
+        [
+            {
+                "description"   : "Enable pretty-printing for gdb",
+                "text"          : "-enable-pretty-printing",
+                "ignoreFailures": true
+            },
+            {
+                "description"   : "Set Disassembly Flavor to Intel",
+                "text"          : "-gdb-set disassembly-flavor intel",
+                "ignoreFailures": true
+            }
+        ]
+    },
+    {
+        "name"           : "c-toolkit debug",
+        "type"           : "cppdbg",
+        "request"        : "launch",
+        "program"        : "${workspaceRoot}/build/${workspaceFolderBasename}.exe",
+        "args"           : [ ".", "output.txt", "ingestify_ignore.txt" ],
+        "stopAtEntry"    : false,
+        "cwd"            : "${workspaceRoot}",
+        "preLaunchTask"  : "clean_build_debug",
         "environment"    : [],
         "externalConsole": false,
         "MIMode"         : "gdb",

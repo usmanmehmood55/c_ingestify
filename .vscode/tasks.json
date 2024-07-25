@@ -3,9 +3,14 @@
     "tasks"  : 
     [
         {
-            "label"  : "clean_build",
+            "label"  : "clean_build_debug",
             "type"   : "shell",
             "command": "rm -r build ; cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Debug ; ninja -C build"
+        },
+        {
+            "label"  : "clean_build_test",
+            "type"   : "shell",
+            "command": "rm -r build ; cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Test ; ninja -C build"
         },
         {
             "label"  : "cmake_generate",
