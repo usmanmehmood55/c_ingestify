@@ -51,7 +51,16 @@ c_ingestify.exe MyAwesomeApp output.txt ingestify_ignore.txt
 
 ## Ongoing Issues
 
-- The ignore functionality used to work but now I've added wildcard processing
-  to it and it doesn't fully work anymore.
-- It gives false positives, i.e., it ignores files that should not have been
-  ignored.
+- The ignore functionality DOES NOT fully work.
+- It can do cases like
+  - `file.type`
+  - `path`
+  - `folder/file.type`
+  - `**/folder`
+  - `**/folder/file.type`
+  - `*.type`
+- It cannot do cases like
+  - `folder/`
+  - `!file.type`
+  - `file?.type`
+  - `file[num].type`
