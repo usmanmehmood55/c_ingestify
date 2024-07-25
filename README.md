@@ -20,6 +20,8 @@ Put simply, the requirements are:
 3. Writes the relative file path before writing the file contents.
 4. Has Git-like ignore functionality so user can ignore non-code files like build artifacts, images, etc.
 
+The .NET version can be found here: [Ingestify](https://github.com/usmanmehmood55/Ingestify)
+
 And while .NET provides exceptionally easy ways to manage files, paths, strings etc,
 and also has a library that implements all of the git ignore functionality,
 implementing the same in C is very difficult (for someone like me).
