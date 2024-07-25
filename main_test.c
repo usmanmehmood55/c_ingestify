@@ -84,7 +84,7 @@ bool test_ignore_dot_folders(void)
     bool result = ignore_is_match(&ignore_list, ".git");
     ASSERT_TEST(result == true);
 
-    result = ignore_is_match(&ignore_list, ".some_other");
+    result = ignore_is_match(&ignore_list, ".gitignore");
     ASSERT_TEST(result == false);
 
     return true;

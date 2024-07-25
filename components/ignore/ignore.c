@@ -136,8 +136,17 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *name)
             // Part of the path matches with the ignore entry
             if (EXISTS(match_substring))
             {
-                //                                       "test/some_file.c"    "test"
-                char *possible_ignore_subfolder = strstr(name, ignore_item);
+                // A slash needs to be added to ignore item so that it appears as a subfolder, and not
+                // a substring of a larger filename.
+                // "test" -> "test/some_file.c" -> true
+                // "test" -> "test_some"        -> false
+                // so "test" has to become "test/"
+                int len_ignore_item = strnlen(ignore_item, PATH_MAX);
+                char *ignore_item_slash = malloc(len_ignore_item + 2);
+                snprintf(ignore_item_slash, len_ignore_item + 2, "%s/", ignore_item);
+                //                                       "test/some_file.c"    "test/"
+                char *possible_ignore_subfolder = strstr(name,                 ignore_item_slash);
+                free(ignore_item_slash);
                 if (EXISTS(possible_ignore_subfolder))
                 {
                     int len_possible_ignore_subfolder = strlen(name);

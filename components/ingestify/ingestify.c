@@ -38,7 +38,7 @@ off_t ingestify_calculate_directory_size(const char *dir_path)
     }
 
     struct dirent *entry;
-    while (IS_NOT_NULL((entry = readdir(dir))))
+    while (EXISTS((entry = readdir(dir))))
     {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
             continue;
@@ -92,7 +92,7 @@ void ingestify_traverse_and_write(const char *dir_path, const ignore_list_t *ign
     }
 
     struct dirent *entry;
-    while (IS_NOT_NULL((entry = readdir(dir))))
+    while (EXISTS((entry = readdir(dir))))
     {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
             continue;
@@ -125,7 +125,7 @@ void ingestify_traverse_and_write(const char *dir_path, const ignore_list_t *ign
         else if (S_ISREG(path_stat.st_mode))
         {
             FILE *input_file = fopen(full_path, "r");
-            if (IS_NOT_NULL(input_file))
+            if (EXISTS(input_file))
             {
                 fprintf(stdout, "Writing:  \"%s\"\n", full_path);
                 fprintf(output_file, "\nFILE \"%s\" =============================================================:\n", full_path);
