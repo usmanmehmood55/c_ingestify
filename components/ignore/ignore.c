@@ -131,39 +131,46 @@ static int match_as_directory(const char *ignore_item, const char *path)
 bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
 {
     if (EXISTS(ignore_list))
-    {
+    { 
         int exact_match;
 
         for (size_t i = 0; i < ignore_list->count; i++)
         {
-            char *ignore_item           = sanitize_path(ignore_list->entries[i]);
-            char *match_substring       = strstr(path, ignore_item);
-            char *match_wildcard        = strstr(ignore_item, "*");
-            char *match_double_wildcard = strstr(ignore_item, "**");
+            char *ignore_item      = sanitize_path(ignore_list->entries[i]);
+            char *path_has_pattern = strstr(path, ignore_item);
+            char *pattern_has_wc   = strstr(ignore_item, "*");
+            char *pattern_has_dwc  = strstr(ignore_item, "**");
+
+            // Double wildcard was found in the entry, example: path:"repo/logs/file.txt", ignore:"**/logs"
+            if (EXISTS(pattern_has_dwc))
+            {
+                char *pattern_after_dwc_slash = &pattern_has_dwc[3]; // "**/some_path" -> "some_path"
+                char *path_subdir_has_pattern = strstr(path, pattern_after_dwc_slash);
+                if (EXISTS(path_subdir_has_pattern))
+                {
+                    exact_match = strncmp(path_subdir_has_pattern, pattern_after_dwc_slash, PATH_MAX);
+                    if (exact_match == 0)
+                        return true;
+
+                    exact_match = match_as_directory(pattern_after_dwc_slash, path_subdir_has_pattern);
+                    if (exact_match == 0)
+                        return true;
+                    
+                }
+                else
+                    return false;
+            }
 
             // Wildcard was found in the entry, example: path:"file.exe", ignore:"*.exe"
-            if (EXISTS(match_wildcard))
+            if (EXISTS(pattern_has_wc))
             {
                 exact_match = strncmp(get_filename_ext(path), get_filename_ext(ignore_item), MAX_PATH);
                 if (exact_match == 0)
                     return true;
             }
 
-            // Double wildcard was found in the entry, example: path:"repo/logs/file.txt", ignore:"**/logs"
-            if (EXISTS(match_double_wildcard))
-            {
-                char *after_wildcard_and_slash = &match_double_wildcard[3]; // "**/some_path" -> "some_path"
-                char *double_wildcard_path_match = strstr(path, after_wildcard_and_slash);
-                if (EXISTS(double_wildcard_path_match))
-                {
-                    exact_match = match_as_directory(after_wildcard_and_slash, double_wildcard_path_match);
-                    if (exact_match == 0)
-                        return true;
-                }
-            }
-
             // Part of the path matches with the ignore entry, example: path:"some_dir/file.txt", ignore:"some_dir"
-            if (EXISTS(match_substring))
+            if (EXISTS(path_has_pattern))
             {
                 // A directory in the path has matched
                 exact_match = match_as_directory(ignore_item, path);
