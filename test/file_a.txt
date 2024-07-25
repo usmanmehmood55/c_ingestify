@@ -1,0 +1,2 @@
+Hi, I am file A.
+I should be included.

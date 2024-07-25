@@ -1,0 +1,10 @@
+.git
+build
+file_b.txt
+test/file_b.txt
+*.hex
+components/c_asserts/.gitignore
+components/c_asserts/CMakeLists.txt
+components/c_asserts/LICENSE
+components/c_asserts/README.md
+main_test.c

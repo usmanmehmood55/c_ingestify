@@ -1,0 +1,2 @@
+Hi, I am file B!
+I should be ignored by name.

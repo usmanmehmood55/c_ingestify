@@ -1,0 +1,37 @@
+{
+    "version": "2.0.0",
+    "tasks"  : 
+    [
+        {
+            "label"  : "clean_build",
+            "type"   : "shell",
+            "command": "rm -r build ; cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Debug ; ninja -C build"
+        },
+        {
+            "label"  : "cmake_generate",
+            "type"   : "shell",
+            "command": "cmake -G Ninja -B build"
+        },
+        {
+            "label"  : "ninja_build",
+            "type"   : "shell",
+            "command": "ninja -C build"
+        },
+        {
+            "label"  : "run_executable",
+            "type"   : "shell",
+            "command": "./build/${workspaceFolderBasename}.exe"
+        },
+        {
+            "label"  : "build_and_run",
+            "type"   : "shell",
+            "dependsOn": 
+            [
+                "cmake_generate",
+                "ninja_build",
+                "run_executable"
+            ],
+            "command": "echo All tasks executed successfully."
+        }
+    ]
+}

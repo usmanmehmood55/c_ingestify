@@ -1,0 +1,3 @@
+[submodule "components/c_asserts"]
+	path = components/c_asserts
+	url = https://github.com/usmanmehmood55/c_asserts.git
