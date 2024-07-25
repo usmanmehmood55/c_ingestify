@@ -15,6 +15,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+static inline int match_exact_path(const char *pattern, const char *path)
+{
+    return strncmp(path, pattern, MAX_PATH);
+}
+
 /**
  * @brief Frees the memory allocated for the ignore list.
  * 
@@ -99,7 +104,7 @@ ignore_list_t *ignore_read_list(const char *ignore_file)
  * 
  * @return 0 if match, some other value otherwise.
  */
-static int match_as_directory(const char *ignore_item, const char *path)
+static int match_directory(const char *ignore_item, const char *path)
 {
     int exact_match = -1;
     int len_ignore_item = strnlen(ignore_item, PATH_MAX);
@@ -148,14 +153,13 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
                 char *path_subdir_has_pattern = strstr(path, pattern_after_dwc_slash);
                 if (EXISTS(path_subdir_has_pattern))
                 {
-                    exact_match = strncmp(path_subdir_has_pattern, pattern_after_dwc_slash, PATH_MAX);
+                    exact_match = match_exact_path(path_subdir_has_pattern, pattern_after_dwc_slash);
                     if (exact_match == 0)
                         return true;
 
-                    exact_match = match_as_directory(pattern_after_dwc_slash, path_subdir_has_pattern);
+                    exact_match = match_directory(pattern_after_dwc_slash, path_subdir_has_pattern);
                     if (exact_match == 0)
                         return true;
-                    
                 }
                 else
                     return false;
@@ -164,7 +168,7 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
             // Wildcard was found in the entry, example: path:"file.exe", ignore:"*.exe"
             if (EXISTS(pattern_has_wc))
             {
-                exact_match = strncmp(get_filename_ext(path), get_filename_ext(ignore_item), MAX_PATH);
+                exact_match = match_exact_path(get_filename_ext(ignore_item), get_filename_ext(path));
                 if (exact_match == 0)
                     return true;
             }
@@ -173,12 +177,12 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
             if (EXISTS(path_has_pattern))
             {
                 // A directory in the path has matched
-                exact_match = match_as_directory(ignore_item, path);
+                exact_match = match_directory(ignore_item, path);
                 if (exact_match == 0)
                     return true;
 
                 // The full path has matched
-                exact_match = strncmp(ignore_item, path, PATH_MAX);
+                exact_match = match_exact_path(ignore_item, path);
                 if (exact_match == 0)
                     return true;
             }

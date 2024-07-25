@@ -5,7 +5,7 @@
 #include "c_asserts.h"
 
 // Test case to check that an empty ignore list does not ignore any files
-bool test_ignore_empty_list(void)
+bool test__ignore_is_match__empty_list(void)
 {
     ignore_list_t ignore_list = { .entries = NULL, .count = 0 };
     bool result = ignore_is_match(&ignore_list, "somefile.c");
@@ -15,7 +15,7 @@ bool test_ignore_empty_list(void)
 }
 
 // Test case to check that files matching an ignore pattern are correctly ignored
-bool test_ignore_matching_file(void)
+bool test__ignore_is_match__matching_file(void)
 {
     char *entries[] = { "ignore_this.c" };
     ignore_list_t ignore_list = { .entries = entries, .count = 1 };
@@ -26,7 +26,7 @@ bool test_ignore_matching_file(void)
 }
 
 // Test case to check that files not matching any ignore patterns are not ignored
-bool test_ignore_non_matching_file(void)
+bool test__ignore_is_match__non_matching_file(void)
 {
     char *entries[] = { "ignore_this.c" };
     ignore_list_t ignore_list = { .entries = entries, .count = 1 };
@@ -37,7 +37,7 @@ bool test_ignore_non_matching_file(void)
 }
 
 // Test case to check that directories matching an ignore pattern are correctly ignored
-bool test_ignore_matching_directory(void)
+bool test__ignore_is_match__matching_directory(void)
 {
     char entry[] = "build/";
     char *entries[] = { entry };
@@ -49,37 +49,82 @@ bool test_ignore_matching_directory(void)
 }
 
 // Test case to check that wildcards in ignore patterns are correctly handled
-bool test_ignore_wildcard(void)
+bool test__ignore_is_match__wildcard(void)
 {
-    char *entries[] = { "*.o" };
+    bool result;
+    char entry[] = "*.log";
+    char *entries[] = {entry};
     ignore_list_t ignore_list = { .entries = entries, .count = 1 };
-    bool result = ignore_is_match(&ignore_list, "objectfile.o");
+    
+    result = ignore_is_match(&ignore_list, "debug.log");
     ASSERT_TEST(result == true);
 
-    result = ignore_is_match(&ignore_list, "objectfile.c");
+    result = ignore_is_match(&ignore_list, "foo.log");
+    ASSERT_TEST(result == true);
+
+    result = ignore_is_match(&ignore_list, ".log");
+    ASSERT_TEST(result == true);
+
+    result = ignore_is_match(&ignore_list, "logs/debug.log");
+    ASSERT_TEST(result == true);
+
+    result = ignore_is_match(&ignore_list, "log.debug");
+    ASSERT_TEST(result == false);
+
+    result = ignore_is_match(&ignore_list, "log.foo");
+    ASSERT_TEST(result == false);
+
+    result = ignore_is_match(&ignore_list, "log.");
+    ASSERT_TEST(result == false);
+
+    result = ignore_is_match(&ignore_list, "logs/log.debug");
     ASSERT_TEST(result == false);
 
     return true;
 }
 
 // Test case to check that ignore patterns match substrings in paths
-bool test_ignore_double_wildcard_directory(void)
+bool test__ignore_is_match__double_wildcard_directory(void)
 {
-    char entry[] = "**/test/";
+    bool result;
+    char entry[] = "**/logs/";
     char *entries[] = {entry};
     ignore_list_t ignore_list = {.entries = entries, .count = 1};
 
-    bool result = ignore_is_match(&ignore_list, "project/test/file.c");
+    result = ignore_is_match(&ignore_list, "logs/debug.log");
     ASSERT_TEST(result == true);
 
-    result = ignore_is_match(&ignore_list, "test/project/file.c");
+    result = ignore_is_match(&ignore_list, "logs/monday/foo.bar");
+    ASSERT_TEST(result == true);
+
+    result = ignore_is_match(&ignore_list, "build/logs/debug.log");
     ASSERT_TEST(result == true);
 
     return true;
 }
 
 // Test case to check that ignore patterns match substrings in paths
-bool test_ignore_double_wildcard_file(void)
+bool test__ignore_is_match__double_wildcard_directory_file(void)
+{
+    bool result;
+    char entry[] = "**/logs/debug.log";
+    char *entries[] = {entry};
+    ignore_list_t ignore_list = {.entries = entries, .count = 1};
+
+    result = ignore_is_match(&ignore_list, "logs/debug.log");
+    ASSERT_TEST(result == true);
+
+    result = ignore_is_match(&ignore_list, "build/logs/debug.log");
+    ASSERT_TEST(result == true);
+
+    result = ignore_is_match(&ignore_list, "logs/build/debug.log");
+    ASSERT_TEST(result == false);
+
+    return true;
+}
+
+// Test case to check that ignore patterns match substrings in paths
+bool test__ignore_is_match__double_wildcard_directory_specific_file(void)
 {
     char entry[] = "**/test/file_a.c";
     char *entries[] = {entry};
@@ -95,7 +140,7 @@ bool test_ignore_double_wildcard_file(void)
 }
 
 // Test case to check that ignore patterns match substrings in paths
-bool test_ignore_dot_folders(void)
+bool test__ignore_is_match__dot_folders(void)
 {
     char entry[] = ".git";
     char *entries[] = { entry };
@@ -112,14 +157,15 @@ bool test_ignore_dot_folders(void)
 
 int main(void)
 {
-    TEST(test_ignore_empty_list);
-    TEST(test_ignore_matching_file);
-    TEST(test_ignore_non_matching_file);
-    TEST(test_ignore_matching_directory);
-    TEST(test_ignore_wildcard);
-    TEST(test_ignore_double_wildcard_directory);
-    TEST(test_ignore_double_wildcard_file);
-    TEST(test_ignore_dot_folders);
+    TEST(test__ignore_is_match__empty_list);
+    TEST(test__ignore_is_match__matching_file);
+    TEST(test__ignore_is_match__non_matching_file);
+    TEST(test__ignore_is_match__matching_directory);
+    TEST(test__ignore_is_match__wildcard);
+    TEST(test__ignore_is_match__double_wildcard_directory);
+    TEST(test__ignore_is_match__double_wildcard_directory_file);
+    TEST(test__ignore_is_match__double_wildcard_directory_specific_file);
+    TEST(test__ignore_is_match__dot_folders);
 
     return display_test_summary();
 }

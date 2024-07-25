@@ -64,3 +64,5 @@ c_ingestify.exe MyAwesomeApp output.txt ingestify_ignore.txt
   - `!file.type`
   - `file?.type`
   - `file[num].type`
+
+I am basing the criteria from this .gitignore guide from Atlassian: [Git ignore patterns](https://www.atlassian.com/git/tutorials/saving-changes/gitignore).
