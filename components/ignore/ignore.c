@@ -197,7 +197,7 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
         if (EXISTS(pattern_has_neg) && EXISTS(pattern_has_neg + 1)) // checking for *p and *p+1 guarantees length < 1
         {
             pattern_has_neg++; // Skip the "!"
-            char *path_subdir_has_pattern = strstr(path, pattern_has_neg);
+            const char *path_subdir_has_pattern = strstr(path, pattern_has_neg);
             if (path_subdir_has_pattern)
             {
                 exact_match = match_exact_path(pattern_has_neg, path_subdir_has_pattern);
@@ -220,8 +220,8 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
                 continue;
             }
 
-            char *pattern_after_dwc_slash = &pattern_has_dwc[3]; // "**/some_path" -> "some_path"
-            char *path_subdir_has_pattern = strstr(path, pattern_after_dwc_slash);
+            const char *pattern_after_dwc_slash = &pattern_has_dwc[3]; // "**/some_path" -> "some_path"
+            const char *path_subdir_has_pattern = strstr(path, pattern_after_dwc_slash);
             if (EXISTS(path_subdir_has_pattern))
             {
                 exact_match = match_exact_path(path_subdir_has_pattern, pattern_after_dwc_slash);
@@ -246,11 +246,30 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
         // example:- pattern: "*.exe", path: "file.exe"
         if (EXISTS(pattern_has_wc))
         {
-            exact_match = match_exact_path(get_filename_ext(ignore_item), get_filename_ext(path));
-            if (exact_match == 0)
+            char *after_wildcard = pattern_has_wc + 1;
+
+            // If wildcard is right before extension "*.", then only the the extension is matched
+            if (*after_wildcard == '.')
             {
-                is_match = true;
-                continue;
+                exact_match = match_exact_path(get_filename_ext(ignore_item), get_filename_ext(path));
+                if (exact_match == 0)
+                {
+                    is_match = true;
+                    continue;
+                }
+            }
+
+            // Wildcard was somewhere else in the path
+            char *path_match_after_wildcard = strstr(path, after_wildcard);
+            if (path_match_after_wildcard)
+            {
+                int wildcard_position = pattern_has_wc - ignore_item;
+                exact_match = strncmp(ignore_item, path, wildcard_position);
+                if (exact_match == 0)
+                {
+                    is_match = true;
+                    continue;
+                }
             }
         }
 
