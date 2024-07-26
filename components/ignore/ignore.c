@@ -145,7 +145,8 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
             char *path_has_pattern = strstr(path, ignore_item);
             char *pattern_has_wc   = strstr(ignore_item, "*");
             char *pattern_has_dwc  = strstr(ignore_item, "**");
-            // char *pattern_has_neg  = strchr(ignore_item, '!');
+            char *pattern_has_ques = strstr(ignore_item, "?");
+            // char *pattern_has_neg  = strstr(ignore_item, "!");
 
             // Double wildcard was found in the entry, example: path:"repo/logs/file.txt", ignore:"**/logs"
             if (EXISTS(pattern_has_dwc))
@@ -170,6 +171,25 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
             if (EXISTS(pattern_has_wc))
             {
                 exact_match = match_exact_path(get_filename_ext(ignore_item), get_filename_ext(path));
+                if (exact_match == 0)
+                    return true;
+            }
+
+            // Question mark was found in the entry, example: path:"file_1.exe", ignore:"file_?.exe"
+            if (EXISTS(pattern_has_ques))
+            {
+                int ques_position = pattern_has_ques - ignore_item ;
+                char path_ques[__PATH_MAX] = { 0 };
+                memcpy(path_ques, path, strnlen(path, __PATH_MAX));
+                path_ques[ques_position] = '?';
+
+                // A directory in the path has matched
+                exact_match = match_directory(ignore_item, path_ques);
+                if (exact_match == 0)
+                    return true;
+
+                // The full path has matched
+                exact_match = match_exact_path(ignore_item, path_ques);
                 if (exact_match == 0)
                     return true;
             }
