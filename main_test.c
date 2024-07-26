@@ -65,7 +65,7 @@ bool test__ignore_is_match__wildcard_type_with_exception(void)
     result = ignore_is_match(&ignore_list, ".log");
     ASSERT_TEST(result == true);
 
-    result = ignore_is_match(&ignore_list, "logs/debug.log");
+    result = ignore_is_match(&ignore_list, "logs/important.log");
     ASSERT_TEST(result == false);
 
     return true;

@@ -126,17 +126,19 @@ static int match_directory(const char *ignore_item, const char *path)
 
 /**
  * @brief Checks if a file or directory should be ignored based on the ignore list.
- * 
+ *
  * @param[in] ignore_list Pointer to the ignore list structure.
  * @param[in] path        Path to the file or directory.
- * 
+ *
  * @return true If the file or directory should be ignored.
  * @return false If the file or directory should not be ignored.
  */
 bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
 {
+    bool is_match = false;
+
     if (EXISTS(ignore_list))
-    { 
+    {
         int exact_match;
 
         for (size_t i = 0; i < ignore_list->count; i++)
@@ -146,9 +148,10 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
             char *pattern_has_wc   = strstr(ignore_item, "*");
             char *pattern_has_dwc  = strstr(ignore_item, "**");
             char *pattern_has_ques = strstr(ignore_item, "?");
-            // char *pattern_has_neg  = strstr(ignore_item, "!");
+            char *pattern_has_neg  = strstr(ignore_item, "!");
 
-            // Double wildcard was found in the entry, example: path:"repo/logs/file.txt", ignore:"**/logs"
+            // Double wildcard was found in the entry
+            // example:- pattern: "**/logs", path: "repo/logs/file.txt"
             if (EXISTS(pattern_has_dwc))
             {
                 char *pattern_after_dwc_slash = &pattern_has_dwc[3]; // "**/some_path" -> "some_path"
@@ -157,28 +160,39 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
                 {
                     exact_match = match_exact_path(path_subdir_has_pattern, pattern_after_dwc_slash);
                     if (exact_match == 0)
-                        return true;
+                    {
+                        is_match = true;
+                        continue;
+                    }
 
                     exact_match = match_directory(pattern_after_dwc_slash, path_subdir_has_pattern);
                     if (exact_match == 0)
-                        return true;
+                    {
+                        is_match = true;
+                        continue;
+                    }
                 }
                 else
                     return false;
             }
 
-            // Wildcard was found in the entry, example: path:"file.exe", ignore:"*.exe"
+            // Wildcard was found in the entry
+            // example:- pattern: "*.exe", path: "file.exe"
             if (EXISTS(pattern_has_wc))
             {
                 exact_match = match_exact_path(get_filename_ext(ignore_item), get_filename_ext(path));
                 if (exact_match == 0)
-                    return true;
+                {
+                    is_match = true;
+                    continue;
+                }
             }
 
-            // Question mark was found in the entry, example: path:"file_1.exe", ignore:"file_?.exe"
+            // Question mark was found in the entry
+            // example:- path: "file_1.exe", pattern: "file_?.exe"
             if (EXISTS(pattern_has_ques))
             {
-                int ques_position = pattern_has_ques - ignore_item ;
+                int ques_position = pattern_has_ques - ignore_item;
                 char path_ques[__PATH_MAX] = { 0 };
                 memcpy(path_ques, path, strnlen(path, __PATH_MAX));
                 path_ques[ques_position] = '?';
@@ -186,31 +200,82 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
                 // A directory in the path has matched
                 exact_match = match_directory(ignore_item, path_ques);
                 if (exact_match == 0)
-                    return true;
+                {
+                    is_match = true;
+                    continue;
+                }
 
                 // The full path has matched
                 exact_match = match_exact_path(ignore_item, path_ques);
                 if (exact_match == 0)
-                    return true;
+                {
+                    is_match = true;
+                    continue;
+                }
             }
 
-            // Part of the path matches with the ignore entry, example: path:"some_dir/file.txt", ignore:"some_dir"
+            // Question mark was found in the entry
+            // example:- pattern: [ "log", "!log/important.txt" ]
+            // ignores: "log/some_log.txt", doesn't ignore: "log/important.txt"
+            if (EXISTS(pattern_has_neg))
+            {
+                if (strnlen(pattern_has_neg, __PATH_MAX) > 1) // Pattern should be at least "!p" not just "!"
+                {
+                    pattern_has_neg++; // Skip the "!"
+
+                    // A directory in the path has matched
+                    exact_match = match_directory(pattern_has_neg, path);
+                    if (exact_match == 0)
+                    {
+                        is_match = false;
+                        break;
+                    }
+
+                    char *path_has_neg_pattern = strstr(path, pattern_has_neg);
+                    if (path_has_neg_pattern)
+                    {
+                        exact_match = match_exact_path(pattern_has_neg, path_has_neg_pattern);
+                        if (exact_match == 0)
+                        {
+                            is_match = false;
+                            break;
+                        }
+                    }
+
+                    // The full path has matched
+                    exact_match = match_exact_path(pattern_has_neg, path);
+                    if (exact_match == 0)
+                    {
+                        is_match = false;
+                        break;
+                    }
+                }
+            }
+
+            // Part of the path matches with the ignore entry
+            // example:- pattern: "some_dir", path: "some_dir/file.txt"
             if (EXISTS(path_has_pattern))
             {
                 // A directory in the path has matched
                 exact_match = match_directory(ignore_item, path);
                 if (exact_match == 0)
-                    return true;
+                {
+                    is_match = true;
+                    continue;
+                }
 
                 // The full path has matched
                 exact_match = match_exact_path(ignore_item, path);
                 if (exact_match == 0)
-                    return true;
+                {
+                    is_match = true;
+                    continue;
+                }
             }
         }
     }
 
-    return false;
+    return is_match;
 }
 
 // end of file ignore.c
