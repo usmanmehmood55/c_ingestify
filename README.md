@@ -55,14 +55,20 @@ c_ingestify.exe MyAwesomeApp output.txt ingestify_ignore.txt
 - It can do cases like
   - `file.type`
   - `path`
+  - `folder/`
   - `folder/file.type`
+  - `*.type`
   - `**/folder`
   - `**/folder/file.type`
-  - `*.type`
-- It cannot do cases like
-  - `folder/`
   - `!file.type`
   - `file?.type`
+- It cannot do cases like
   - `file[num].type`
+  - `file[num_range].type`
+  - `file[!num_range].type`
+  - `file[letter_range].type`
+  - `folder/**/file.type`
+  - `folder/*folder/file.type`
+- Tests for all the types have been written.
 
 I am basing the criteria from this .gitignore guide from Atlassian: [Git ignore patterns](https://www.atlassian.com/git/tutorials/saving-changes/gitignore).

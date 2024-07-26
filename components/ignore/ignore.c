@@ -143,9 +143,9 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
     bool is_match = false;
     int exact_match;
 
-    for (size_t i = 0; i < ignore_list->count; i++)
+    for (size_t entry = 0; entry < ignore_list->count; entry++)
     {
-        char *ignore_item      = sanitize_path(ignore_list->entries[i]);
+        char *ignore_item      = sanitize_path(ignore_list->entries[entry]);
         if (IS_NULL(ignore_item))
             continue;
 

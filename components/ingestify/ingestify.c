@@ -133,7 +133,7 @@ void ingestify_traverse_and_write(const char *dir_path, const ignore_list_t *ign
                 size_t n;
                 while ((n = fread(buffer, 1, sizeof(buffer), input_file)) > 0)
                 {
-                    data_written += ftell(output_file);
+                    data_written += n;
                     if (data_written > max_output_size)
                     {
                         fprintf(stderr, "Output file size exceeded the limit. Aborting.\n");
