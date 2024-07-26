@@ -9,6 +9,7 @@
         "stdbool.h": "c",
         "common.h": "c",
         "c_asserts.h": "c",
-        "functional": "c"
+        "functional": "c",
+        "shlwapi.h": "c"
     }
 }

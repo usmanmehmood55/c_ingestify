@@ -17,7 +17,7 @@
 
 static inline int match_exact_path(const char *pattern, const char *path)
 {
-    return strncmp(path, pattern, __PATH_MAX);
+    return strncmp(pattern, path, __PATH_MAX);
 }
 
 /**
@@ -148,7 +148,25 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
             char *pattern_has_wc   = strstr(ignore_item, "*");
             char *pattern_has_dwc  = strstr(ignore_item, "**");
             char *pattern_has_ques = strstr(ignore_item, "?");
-            char *pattern_has_neg  = strstr(ignore_item, "!");
+            char *pattern_has_neg  = (EXISTS(ignore_item) && (ignore_item[0] == '!')) ? ignore_item : NULL;
+            
+            // Question mark was found in the entry
+            // example:- pattern: [ "log", "!log/important.txt" ]
+            // ignores: "log/some_log.txt", doesn't ignore: "log/important.txt"
+            if (EXISTS(pattern_has_neg) && EXISTS(pattern_has_neg + 1))
+            {
+                pattern_has_neg++; // Skip the "!"
+                char *path_subdir_has_pattern = strstr(path, pattern_has_neg);
+                if (path_subdir_has_pattern)
+                {
+                    exact_match = match_exact_path(pattern_has_neg, path_subdir_has_pattern);
+                    if (exact_match == 0)
+                    {
+                        is_match = false;
+                        break;
+                    }
+                }
+            }
 
             // Double wildcard was found in the entry
             // example:- pattern: "**/logs", path: "repo/logs/file.txt"
@@ -211,44 +229,6 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
                 {
                     is_match = true;
                     continue;
-                }
-            }
-
-            // Question mark was found in the entry
-            // example:- pattern: [ "log", "!log/important.txt" ]
-            // ignores: "log/some_log.txt", doesn't ignore: "log/important.txt"
-            if (EXISTS(pattern_has_neg))
-            {
-                if (strnlen(pattern_has_neg, __PATH_MAX) > 1) // Pattern should be at least "!p" not just "!"
-                {
-                    pattern_has_neg++; // Skip the "!"
-
-                    // A directory in the path has matched
-                    exact_match = match_directory(pattern_has_neg, path);
-                    if (exact_match == 0)
-                    {
-                        is_match = false;
-                        break;
-                    }
-
-                    char *path_has_neg_pattern = strstr(path, pattern_has_neg);
-                    if (path_has_neg_pattern)
-                    {
-                        exact_match = match_exact_path(pattern_has_neg, path_has_neg_pattern);
-                        if (exact_match == 0)
-                        {
-                            is_match = false;
-                            break;
-                        }
-                    }
-
-                    // The full path has matched
-                    exact_match = match_exact_path(pattern_has_neg, path);
-                    if (exact_match == 0)
-                    {
-                        is_match = false;
-                        break;
-                    }
                 }
             }
 
