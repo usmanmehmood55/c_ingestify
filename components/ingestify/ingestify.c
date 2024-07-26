@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <string.h>
 
 /**
  * @brief Maintains the size of data written to output file.
