@@ -349,6 +349,60 @@ bool test__ignore_is_match__exact_path(void)
     return true;
 }
 
+bool test__ignore_is_match__self_test_generic(void)
+{
+    char entry_0[] = ".git";
+    char entry_1[] = "build";
+    char entry_2[] = "file_b.txt";
+    char entry_3[] = "test/file_b.txt";
+    char entry_4[] = "*.hex";
+    char entry_5[] = "components/c_asserts/.gitignore";
+    char entry_6[] = "components/c_asserts/CMakeLists.txt";
+    char entry_7[] = "components/c_asserts/LICENSE";
+    char entry_8[] = "components/c_asserts/README.md";
+    char entry_9[] = "main_test.c";
+
+    char *entries[] = { entry_0, entry_1, entry_2, entry_3, entry_4, entry_5, entry_6, entry_7, entry_8, entry_9 };
+    ignore_list_t ignore_list = { .entries = entries, .count = 10 };
+
+    ASSERT_TEST(ignore_is_match(&ignore_list, ".git")                                == true);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "build")                               == true);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/c_asserts/.gitignore")     == true);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/c_asserts/CMakeLists.txt") == true);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/c_asserts/LICENSE")        == true);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/c_asserts/README.md")      == true);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "main_test.c")                         == true);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "test/file_b.txt")                     == true);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "test/file_c.hex")                     == true);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "test/file_d.hex")                     == true);
+    ASSERT_TEST(ignore_is_match(&ignore_list, ".gitignore")                          == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, ".gitmodules")                         == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, ".vscode/c_cpp_properties.json")       == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, ".vscode/launch.json")                 == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, ".vscode/settings.json")               == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, ".vscode/tasks.json")                  == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "CMakeLists.txt")                      == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/common/CMakeLists.txt")    == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/common/common.c")          == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/common/common.h")          == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/c_asserts/.git")           == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/c_asserts/c_asserts.c")    == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/c_asserts/c_asserts.h")    == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/ignore/CMakeLists.txt")    == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/ignore/ignore.c")          == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/ignore/ignore.h")          == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/ingestify/CMakeLists.txt") == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/ingestify/ingestify.c")    == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "components/ingestify/ingestify.h")    == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "ingestify_ignore.txt")                == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "LICENSE")                             == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "main.c")                              == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "README.md")                           == false);
+    ASSERT_TEST(ignore_is_match(&ignore_list, "test/file_a.txt")                     == false);
+
+    return true;
+}
+
 int main(void)
 {
     TEST(test__ignore_is_match__empty_list);
@@ -368,6 +422,8 @@ int main(void)
     TEST(test__ignore_is_match__double_wildcard_mid_path);
     TEST(test__ignore_is_match__wildcard_in_dir_name);
     TEST(test__ignore_is_match__exact_path);
+
+    TEST(test__ignore_is_match__self_test_generic);
 
     return display_test_summary();
 }

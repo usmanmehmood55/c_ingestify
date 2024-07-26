@@ -178,7 +178,7 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
         if (EXISTS(pattern_has_dwc))
         {
             int pattern_len = strnlen(pattern_has_dwc, __PATH_MAX);
-            if (pattern_len < 3)
+            if (pattern_len < 4)
             {
                 is_match = false;
                 continue;
