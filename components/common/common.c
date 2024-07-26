@@ -37,7 +37,7 @@ char *sanitize_path(char *path)
     if (IS_NULL(path)) return NULL;
     // fprintf(stdout, "pre: \"%s\"\n", path);
     if (strncmp(path, "./", 2U) == 0) path += 2;            // Remove leading dot and slash "./", it is basically 'skipping' them from the string
-    int path_len = strnlen(path, MAX_PATH);                 // Remove trailing slash "/", it NULL terminates the string at the slash
+    int path_len = strnlen(path, __PATH_MAX);               // Remove trailing slash "/", it NULL terminates the string at the slash
     if (path[path_len - 1] == '/') path[path_len - 1] = 0;  // This may lead to segfaults if the string is read-only
     // fprintf(stdout, "pst: \"%s\"\n\n", path);
     return path;

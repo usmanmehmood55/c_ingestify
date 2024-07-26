@@ -40,10 +40,10 @@ off_t ingestify_calculate_directory_size(const char *dir_path)
     struct dirent *entry;
     while (EXISTS((entry = readdir(dir))))
     {
-        if (strncmp(entry->d_name, ".", MAX_PATH) == 0 || strncmp(entry->d_name, "..", MAX_PATH) == 0)
+        if (strncmp(entry->d_name, ".", __PATH_MAX) == 0 || strncmp(entry->d_name, "..", __PATH_MAX) == 0)
             continue;
 
-        char full_path[MAX_PATH];
+        char full_path[__PATH_MAX];
         snprintf(full_path, sizeof(full_path), "%s/%s", dir_path, entry->d_name);
 
         struct stat path_stat;
@@ -94,12 +94,12 @@ void ingestify_traverse_and_write(const char *dir_path, const ignore_list_t *ign
     struct dirent *entry;
     while (EXISTS((entry = readdir(dir))))
     {
-        if (strncmp(entry->d_name, ".", MAX_PATH) == 0 || strncmp(entry->d_name, "..", MAX_PATH) == 0)
+        if (strncmp(entry->d_name, ".", __PATH_MAX) == 0 || strncmp(entry->d_name, "..", __PATH_MAX) == 0)
             continue;
 
-        char full_path[MAX_PATH];
+        char full_path[__PATH_MAX];
         snprintf(full_path, sizeof(full_path), "%s/%s", dir_path, entry->d_name);
-        if (strncmp(sanitize_path(full_path), output_file_path, MAX_PATH) == 0)
+        if (strncmp(sanitize_path(full_path), output_file_path, __PATH_MAX) == 0)
         {
             fprintf(stdout, "Ignoring: \"%s\"\n", full_path);
             continue;

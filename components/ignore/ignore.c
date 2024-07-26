@@ -17,7 +17,7 @@
 
 static inline int match_exact_path(const char *pattern, const char *path)
 {
-    return strncmp(path, pattern, MAX_PATH);
+    return strncmp(path, pattern, __PATH_MAX);
 }
 
 /**
@@ -64,7 +64,7 @@ ignore_list_t *ignore_read_list(const char *ignore_file)
     ignore_list->count = 0;
     ignore_list->entries = NULL;
 
-    char line[MAX_PATH];
+    char line[__PATH_MAX];
     while (fgets(line, sizeof(line), file))
     {
         line[strcspn(line, "\n")] = '\0'; // Remove the newline character
@@ -107,7 +107,7 @@ ignore_list_t *ignore_read_list(const char *ignore_file)
 static int match_directory(const char *ignore_item, const char *path)
 {
     int exact_match = -1;
-    int len_ignore_item = strnlen(ignore_item, PATH_MAX);
+    int len_ignore_item = strnlen(ignore_item, __PATH_MAX);
 
     char *ignore_item_slash = malloc(len_ignore_item + 2);
     {
@@ -115,7 +115,7 @@ static int match_directory(const char *ignore_item, const char *path)
         char *possible_ignore_subfolder = strstr(path, ignore_item_slash);
         if (EXISTS(possible_ignore_subfolder))
         {
-            int len_possible_ignore_subfolder = strnlen(path, MAX_PATH);
+            int len_possible_ignore_subfolder = strnlen(path, __PATH_MAX);
             exact_match = strncmp(possible_ignore_subfolder, path, len_possible_ignore_subfolder);
         }
     }

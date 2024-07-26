@@ -10,7 +10,7 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-#define MAX_PATH 1024
+#define __PATH_MAX 260
 
 #define IS_NULL(ptr)     (ptr == NULL)
 #define IS_NOT_NULL(ptr) (ptr != NULL)
