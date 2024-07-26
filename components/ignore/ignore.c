@@ -20,6 +20,40 @@ static inline int match_exact_path(const char *pattern, const char *path)
     return strncmp(pattern, path, __PATH_MAX);
 }
 
+static inline int unsafe_char_to_digit(const char _char)
+{
+    return (48 <= _char && _char <= 57) ? ((int)_char - 48) : -1;
+}
+
+/**
+ * @brief Converts string representing a number into an int.
+ * 
+ * @param[in]      str         String to convert.
+ * @param[in, out] ptr_int_out Buffer to put converted number in.
+ * 
+ * @return 0 on success.
+ */
+static int str_to_int(char *str, int *ptr_int_out)
+{
+    int int_out = 0;
+    char *_str_max = str + __PATH_MAX;
+    for (char *rp = str; *rp && (rp != _str_max); rp++)
+    {
+        int char_digit = unsafe_char_to_digit(*rp);
+        if (char_digit >= 0)
+        {
+            int_out *= 10;
+            int_out += char_digit;
+        }
+        else
+        {
+            return 1; // error
+        }
+    }
+    *ptr_int_out = int_out;
+    return 0;
+}
+
 /**
  * @brief Frees the memory allocated for the ignore list.
  * 
@@ -145,8 +179,8 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
 
     for (size_t entry = 0; entry < ignore_list->count; entry++)
     {
-        char *ignore_item      = sanitize_path(ignore_list->entries[entry]);
-        if (IS_NULL(ignore_item))
+        char *ignore_item = sanitize_path(ignore_list->entries[entry]);
+        if (IS_NULL(ignore_item)) // TODO: add length check here for __PATH_MAX?
             continue;
 
         char *path_has_pattern = strstr(path, ignore_item);
@@ -154,6 +188,8 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
         char *pattern_has_dwc  = strstr(ignore_item, "**"); // dwc = double wildcard
         char *pattern_has_ques = strstr(ignore_item, "?");
         char *pattern_has_neg  = (ignore_item[0] == '!') ? ignore_item : NULL;
+        char *pattern_has_brk_s = strchr(ignore_item, '[');
+        char *pattern_has_brk_e = strchr(ignore_item, ']');
 
         // Question mark was found in the entry
         // example:- pattern: [ "log", "!log/important.txt" ]
