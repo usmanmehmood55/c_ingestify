@@ -22,7 +22,7 @@ static inline int match_exact_path(const char *pattern, const char *path)
 
 static inline int unsafe_char_to_digit(const char _char)
 {
-    return (48 <= _char && _char <= 57) ? ((int)_char - 48) : -1;
+    return ('0' <= _char && _char <= '9') ? ((int)_char - '0') : -1;
 }
 
 /**
@@ -36,10 +36,39 @@ static inline int unsafe_char_to_digit(const char _char)
 static int str_to_int(char *str, int *ptr_int_out)
 {
     int int_out = 0;
-    char *_str_max = str + __PATH_MAX;
+    const char *_str_max = str + __PATH_MAX;
     for (char *rp = str; *rp && (rp != _str_max); rp++)
     {
         int char_digit = unsafe_char_to_digit(*rp);
+        if (char_digit >= 0)
+        {
+            int_out *= 10;
+            int_out += char_digit;
+        }
+        else
+        {
+            return 1; // error
+        }
+    }
+    *ptr_int_out = int_out;
+    return 0;
+}
+
+/**
+ * @brief Converts string representing a number into an int.
+ * 
+ * @param[in]      str         String to convert.
+ * @param[in]      len         String length
+ * @param[in, out] ptr_int_out Buffer to put converted number in.
+ * 
+ * @return 0 on success.
+ */
+static int strn_to_int(const char *str, size_t len, int *ptr_int_out)
+{
+    int int_out = 0;
+    for (size_t i = 0; i < len; i++)
+    {
+        int char_digit = unsafe_char_to_digit(str[i]);
         if (char_digit >= 0)
         {
             int_out *= 10;
@@ -190,6 +219,27 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
         char *pattern_has_neg  = (ignore_item[0] == '!') ? ignore_item : NULL;
         char *pattern_has_brk_s = strchr(ignore_item, '[');
         char *pattern_has_brk_e = strchr(ignore_item, ']');
+
+        if (EXISTS(pattern_has_brk_s) && EXISTS(pattern_has_brk_e))
+        {
+            int bracket_length = pattern_has_brk_e - pattern_has_brk_s - 1;
+            char *pattern_has_range = memchr(pattern_has_brk_s, '-', bracket_length);
+            if (EXISTS(pattern_has_range))
+            {
+                int to, from;
+                char *_to_s   = pattern_has_brk_s + 1;
+                char *_to_e   = pattern_has_range - 1;
+                char *_from_s = pattern_has_range + 1;
+                char *_from_e = pattern_has_brk_e - 1;
+                int to_pass   = strn_to_int(_to_s, ((_to_e - _to_s) + 1), &to);
+                int from_pass = strn_to_int(_from_s, ((_from_e - _from_s) + 1), &from);
+                if((to_pass == 0) && (from_pass == 0))
+                {
+                    // to and from have been parsed here
+                    // although this is not how to will work
+                }
+            }
+        }
 
         // Question mark was found in the entry
         // example:- pattern: [ "log", "!log/important.txt" ]
