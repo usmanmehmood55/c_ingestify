@@ -31,9 +31,9 @@ static inline int unsafe_char_to_digit(const char _char)
  * @param[in]      str         String to convert.
  * @param[in, out] ptr_int_out Buffer to put converted number in.
  * 
- * @return 0 on success.
+ * @return true on success.
  */
-static int str_to_int(char *str, int *ptr_int_out)
+static bool str_to_int(char *str, int *ptr_int_out)
 {
     int int_out = 0;
     const char *_str_max = str + __PATH_MAX;
@@ -47,11 +47,11 @@ static int str_to_int(char *str, int *ptr_int_out)
         }
         else
         {
-            return 1; // error
+            return false; // error
         }
     }
     *ptr_int_out = int_out;
-    return 0;
+    return true;
 }
 
 /**
@@ -61,9 +61,9 @@ static int str_to_int(char *str, int *ptr_int_out)
  * @param[in]      len         String length
  * @param[in, out] ptr_int_out Buffer to put converted number in.
  * 
- * @return 0 on success.
+ * @return true on success.
  */
-static int strn_to_int(const char *str, size_t len, int *ptr_int_out)
+static bool strn_to_int(const char *str, size_t len, int *ptr_int_out)
 {
     int int_out = 0;
     for (size_t i = 0; i < len; i++)
@@ -76,11 +76,11 @@ static int strn_to_int(const char *str, size_t len, int *ptr_int_out)
         }
         else
         {
-            return 1; // error
+            return false; // error
         }
     }
     *ptr_int_out = int_out;
-    return 0;
+    return true;
 }
 
 /**
@@ -231,10 +231,11 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
                 char *_to_e   = pattern_has_range - 1;
                 char *_from_s = pattern_has_range + 1;
                 char *_from_e = pattern_has_brk_e - 1;
-                int to_pass   = strn_to_int(_to_s, ((_to_e - _to_s) + 1), &to);
-                int from_pass = strn_to_int(_from_s, ((_from_e - _from_s) + 1), &from);
-                if((to_pass == 0) && (from_pass == 0))
+                bool to_parsed   = strn_to_int(_to_s, ((_to_e - _to_s) + 1), &to);
+                bool from_parsed = strn_to_int(_from_s, ((_from_e - _from_s) + 1), &from);
+                if(to_parsed && from_parsed)
                 {
+                    printf("\rto: %d, from %d\n", to, from);
                     // to and from have been parsed here
                     // although this is not how to will work
                 }

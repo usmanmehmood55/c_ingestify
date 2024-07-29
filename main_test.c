@@ -173,6 +173,9 @@ bool test__ignore_is_match__bracket_num_range(void)
     result = ignore_is_match(&ignore_list, "debug1.log");
     ASSERT_TEST(result == true);
 
+    result = ignore_is_match(&ignore_list, "debug9.log");
+    ASSERT_TEST(result == true);
+
     result = ignore_is_match(&ignore_list, "debug10.log");
     ASSERT_TEST(result == false);
 
@@ -237,6 +240,9 @@ bool test__ignore_is_match__bracket_char_range(void)
     ASSERT_TEST(result == true);
 
     result = ignore_is_match(&ignore_list, "debugb.log");
+    ASSERT_TEST(result == true);
+
+    result = ignore_is_match(&ignore_list, "debugz.log");
     ASSERT_TEST(result == true);
 
     result = ignore_is_match(&ignore_list, "debug1.log");

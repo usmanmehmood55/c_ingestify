@@ -10,6 +10,7 @@
         "common.h": "c",
         "c_asserts.h": "c",
         "functional": "c",
-        "shlwapi.h": "c"
+        "shlwapi.h": "c",
+        "stdio.h": "c"
     }
 }
