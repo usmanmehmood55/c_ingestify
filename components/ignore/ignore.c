@@ -245,7 +245,7 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
         // Question mark was found in the entry
         // example:- pattern: [ "log", "!log/important.txt" ]
         // ignores: "log/some_log.txt", doesn't ignore: "log/important.txt"
-        if (EXISTS(pattern_has_neg) && EXISTS(pattern_has_neg + 1)) // checking for *p and *p+1 guarantees length < 1
+        if (EXISTS(pattern_has_neg) && EXISTS(pattern_has_neg + 1) && (*(pattern_has_neg + 1) != 0)) // checking for *p and *p+1 guarantees length < 1
         {
             pattern_has_neg++; // Skip the "!"
             const char *path_subdir_has_pattern = strstr(path, pattern_has_neg);
@@ -290,7 +290,10 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
                 }
             }
             else
-                return false;
+            {
+                is_match = false;
+                break;
+            }
         }
 
         // Wildcard was found in the entry
@@ -365,6 +368,14 @@ bool ignore_is_match(const ignore_list_t *ignore_list, const char *path)
             // The full path has matched
             exact_match = match_exact_path(ignore_item, path);
             if (exact_match == 0)
+            {
+                is_match = true;
+                continue;
+            }
+
+            int pattern_len = strnlen(ignore_item, __PATH_MAX);
+            char *path_after_pattern = path_has_pattern + pattern_len;
+            if (EXISTS(path_after_pattern) && *path_after_pattern == '/')
             {
                 is_match = true;
                 continue;
