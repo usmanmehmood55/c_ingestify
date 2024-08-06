@@ -409,6 +409,30 @@ bool test__ignore_is_match__self_test_generic(void)
     return true;
 }
 
+bool test__ignore_read_list__generic(void)
+{
+    char *ignore_file_path = "test/ingestify_ignore.txt";
+    ignore_list_t *ignore_list = ignore_read_list(ignore_file_path);
+
+    ASSERT_TEST(EXISTS(ignore_list));
+    ASSERT_TEST(ignore_list->count == 11);
+    ASSERT_TEST(strncmp(ignore_list->entries[0]  , ".git",                                __PATH_MAX) == 0);
+    ASSERT_TEST(strncmp(ignore_list->entries[1]  , "build",                               __PATH_MAX) == 0);
+    ASSERT_TEST(strncmp(ignore_list->entries[2]  , "file_b.txt",                          __PATH_MAX) == 0);
+    ASSERT_TEST(strncmp(ignore_list->entries[3]  , "test/file_b.txt",                     __PATH_MAX) == 0);
+    ASSERT_TEST(strncmp(ignore_list->entries[4]  , "*.hex",                               __PATH_MAX) == 0);
+    ASSERT_TEST(strncmp(ignore_list->entries[5]  , "components/c_asserts/.gitignore",     __PATH_MAX) == 0);
+    ASSERT_TEST(strncmp(ignore_list->entries[6]  , "components/c_asserts/CMakeLists.txt", __PATH_MAX) == 0);
+    ASSERT_TEST(strncmp(ignore_list->entries[7]  , "components/c_asserts/LICENSE",        __PATH_MAX) == 0);
+    ASSERT_TEST(strncmp(ignore_list->entries[8]  , "components/c_asserts/README.md",      __PATH_MAX) == 0);
+    ASSERT_TEST(strncmp(ignore_list->entries[9]  , "main_test.c",                         __PATH_MAX) == 0);
+    ASSERT_TEST(strncmp(ignore_list->entries[10] , "LICENSE",                             __PATH_MAX) == 0);
+
+    ignore_free_list(ignore_list);
+
+    return true;
+}
+
 int main(void)
 {
     TEST(test__ignore_is_match__empty_list);
@@ -430,6 +454,7 @@ int main(void)
     TEST(test__ignore_is_match__exact_path);
 
     TEST(test__ignore_is_match__self_test_generic);
+    TEST(test__ignore_read_list__generic);
 
     return display_test_summary();
 }
